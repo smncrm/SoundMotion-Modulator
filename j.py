@@ -10,6 +10,7 @@ import numpy as np
 import wave
 import time
 
+
 base = wave.open("Motion_Base.wav", "rb")
 kick = wave.open("Motion_Kick.wav", "rb")
 kick_add = wave.open("Motion_KickAdd.wav", "rb")
