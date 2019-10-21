@@ -24,6 +24,14 @@ def process_new_movement(movement, old_movement):
     return Movement(new_movement_all, new_movement_left, new_movement_right)
 
 
+def process_frame(frame, config):
+    frame = imutils.resize(frame, width=config["frame width"])
+    flipped = cv2.flip(frame, 1)
+    gray = cv2.cvtColor(flipped, cv2.COLOR_BGR2GRAY)
+    gray = cv2.GaussianBlur(gray, (21, 21), 0)
+    return gray
+
+
 def calculate_movement(frames, config):
     # compute the absolute difference between the current frame and
     # first frame

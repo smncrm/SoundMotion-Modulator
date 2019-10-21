@@ -62,16 +62,18 @@ def callback(in_data, frame_count, time_info, status):
                                                    new_movement.right, nframes,
                                                    sounds["add2"]["data"])
 
-    data = 2 * sounds["base"]["data"]
-    data = data + 3 * add_data_all
+    data = sounds["base"]["data"]
+    data = data + 2 * add_data_all
     data = data + add_data_left
-    data = data + 0.7 * add_data_right
+    data = data + add_data_right
 
     if movement.all > 0.4:
         data = data + ss.calculate_weighted_segment(old_movement.all,
-                                                    new_movement.all, nframes,
-                                                    sounds["kick_add"]["data"])
-
+                                                    new_movement.all,
+                                                    nframes,
+                                                    2 * sounds["kick_add"][
+                                                        "data"])
+    data = 4 * data
     data_left, data_right = data[0::2], data[1::2]
     ns = np.column_stack((data_left, data_right)).ravel().astype(np.int16)
 
@@ -109,15 +111,9 @@ areas = deque()
 
 # make sure the frames deque is full before motion detection
 while count <= config_video["tracked frames"]:
-    frame = vs.read()
 
-    # resize the frame, convert it to grayscale, and blur it
-    frame = imutils.resize(frame, width=config_video["frame width"])
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    gray = cv2.GaussianBlur(gray, (21, 21), 0)
-
-    # store the frame
-    frames.append(gray)
+    frame = ms.process_frame(vs.read(), config_video)
+    frames.append(frame)
 
     count = count + 1
 
@@ -125,27 +121,16 @@ config_video["frame area"] = frame.shape[0] * frame.shape[1]
 
 # ----------------------------- main loop -----------------------------
 while True:
-    frame = vs.read()
-    frame = imutils.resize(frame, width=config_video["frame width"])
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    gray = cv2.GaussianBlur(gray, (21, 21), 0)
-    frames.append(gray)
+    frame = ms.process_frame(vs.read(), config_video)
+    frames.append(frame)
 
-    movement, frameDelta_left, frameDelta_right = ms.calculate_movement(frames,
-                                                                        config_video)
+    movement, frame_left, frame_right = ms.calculate_movement(frames,
+                                                              config_video)
 
-    # draw the text and timestamp on the frame
-    cv2.putText(frame, "{}".format(movement.left), (10, 20),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-    cv2.putText(frame, "{}".format(movement.right), (600, 20),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-
-    cv2.imshow("VideoStream", frame)
-
-    frameDelta_left = imutils.resize(frameDelta_left, width=450)
-    frameDelta_right = imutils.resize(frameDelta_right, width=450)
-    cv2.imshow("FrameDelta Left", frameDelta_left)
-    cv2.imshow("FrameDelta right", frameDelta_right)
+    frame_left = imutils.resize(frame_left, width=470)
+    frame_right = imutils.resize(frame_right, width=470)
+    cv2.imshow("FrameDelta Left", frame_left)
+    cv2.imshow("FrameDelta right", frame_right)
 
     key = cv2.waitKey(1) & 0xFF
 
