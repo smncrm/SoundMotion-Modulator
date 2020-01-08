@@ -9,35 +9,32 @@ from src import sound_service as ss
 from collections import deque
 
 # ------------------------------- audio -------------------------------
-base = ss.create_sound("sounds/Motion_Base.wav")
-kick = ss.create_sound("sounds/Motion_Kick.wav")
-kick_add = ss.create_sound("sounds/Motion_KickAdd.wav")
-add1 = ss.create_sound("sounds/Motion_Add2036.wav")
-add2 = ss.create_sound("sounds/Motion_AddBeatique.wav")
+base = ss.create_sound("sounds/Motion_Base_loud.wav")
+kick = ss.create_sound("sounds/Motion_Kick_loud.wav")
+kick_add = ss.create_sound("sounds/Motion_KickAdd_loud.wav")
+add_left = ss.create_sound("sounds/Motion_AddPoisonPluto_loud.wav")
+add_right = ss.create_sound("sounds/Motion_AddBeatique_loud.wav")
 
 sounds = {
     "base": base,
     "kick": kick,
     "kick_add": kick_add,
-    "add1": add1,
-    "add2": add2,
+    "add_left": add_left,
+    "add_right": add_right,
 }
 
 p = pyaudio.PyAudio()
 
-# movement values to modify the sound
 movement = ms.Movement(0, 0, 0)
 old_movement = ms.Movement(0, 0, 0)
 
-# callback_count used to jump back in sample
 nframes = 1024
 callback_count = 0
-callback_limit = base["wave"].getnframes() // nframes - 1000  # TEST THIS !!
+callback_limit = base["wave"].getnframes() // nframes - 1000
 
 
 def callback(in_data, frame_count, time_info, status):
     global callback_count
-    global data
     global old_movement
 
     callback_count = callback_count + 1
@@ -49,7 +46,7 @@ def callback(in_data, frame_count, time_info, status):
     for s in sounds:
         sounds[s]["data"] = ss.read_new_segment(sounds[s]["wave"], nframes)
 
-    # # modify the sound here
+    # modify the sound here
     new_movement = ms.process_new_movement(movement, old_movement)
 
     add_data_all = ss.calculate_weighted_segment(old_movement.all,
@@ -63,7 +60,7 @@ def callback(in_data, frame_count, time_info, status):
                                                    sounds["add2"]["data"])
 
     data = sounds["base"]["data"]
-    data = data + 2 * add_data_all
+    data = data + add_data_all
     data = data + add_data_left
     data = data + add_data_right
 
@@ -71,14 +68,13 @@ def callback(in_data, frame_count, time_info, status):
         data = data + ss.calculate_weighted_segment(old_movement.all,
                                                     new_movement.all,
                                                     nframes,
-                                                    2 * sounds["kick_add"][
+                                                    sounds["kick_add"][
                                                         "data"])
-    data = 4 * data
-    data_left, data_right = data[0::2], data[1::2]
-    ns = np.column_stack((data_left, data_right)).ravel().astype(np.int16)
+
+    data = ss.limit_sound(data)
 
     old_movement = new_movement
-    res_data = ns.tostring()
+    res_data = data.astype(np.int16).tostring()
 
     return res_data, pyaudio.paContinue
 
@@ -92,13 +88,15 @@ stream.start_stream()
 
 # ----------------------------- init video ----------------------------
 config_video = {
-    "frame width": 700,
+    "frame width": 500,
     "min area": 2000,
     "frame area": 0,
-    "tracked frames": 50
+    "tracked frames": 40
 }
 
-vs = VideoStream(src=0).start()
+video_channel = 0
+vs = VideoStream(src=video_channel).start()
+print("Video Channel: " + str(video_channel))
 time.sleep(2.0)
 
 frame = None
@@ -111,7 +109,6 @@ areas = deque()
 
 # make sure the frames deque is full before motion detection
 while count <= config_video["tracked frames"]:
-
     frame = ms.process_frame(vs.read(), config_video)
     frames.append(frame)
 

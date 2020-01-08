@@ -1,6 +1,7 @@
 from collections import namedtuple
 import cv2
 import imutils
+from numba import jit
 
 Movement = namedtuple('Movement', ['all', 'left', 'right'])
 
@@ -24,6 +25,7 @@ def process_new_movement(movement, old_movement):
     return Movement(new_movement_all, new_movement_left, new_movement_right)
 
 
+@jit
 def process_frame(frame, config):
     frame = imutils.resize(frame, width=config["frame width"])
     flipped = cv2.flip(frame, 1)
@@ -61,16 +63,11 @@ def calculate_movement(frames, config):
     for i in range(2):
         cnts = [cnts_left, cnts_right][i]
         area = 0
-        # loop over the contours
         for c in cnts:
-            # if the contour is too small, ignore it
             contour_area = cv2.contourArea(c)
             if contour_area < config["min area"]:
                 continue
 
-            # (x, y, w, h) = cv2.boundingRect(c)
-            # cv2.drawContours(frame, c, -1, (0, 255, 0), 2)
-            # cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
             area = area + contour_area
 
         movements[i] = round(area / config["frame area"], 4)
