@@ -4,6 +4,8 @@ This project was done for an art exhibition at the Hochschule Niederrhein in
 Krefeld, Germany.
 It is highly specific to this exhibition, so it includes some code that might
 not be very beautiful, but served the purpose.
+
+You can view a short demonstration in [this video](https://youtu.be/IZAMerXr5zM "YouTube").
  
 ## What is happening:
 Basically it detects the movement in front of the camera and calculates a 
@@ -21,7 +23,8 @@ The motion detection is fairly simple. A certain amount of frames is stored in
 a queue. The current frame is compared to the oldest frame by calculating the 
 pixel difference. This difference is processed a bit and then contours are 
 identified to calculate the area of moved 'objects'. This is used as the 
-movement score. The current frame gets pushed into the queue. 
+movement score. The current frame gets pushed into the queue and the oldest is 
+popped.
 
 This way of storing frames results in a nice effect, since every frames gets
 used twice. One time as the freshest frame and one time as the oldest. 
