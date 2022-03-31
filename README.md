@@ -6,6 +6,8 @@ It is highly specific to this exhibition, so it includes some code that might
 not be very beautiful, but served the purpose.
 
 You can view a short demonstration in [this video](https://youtu.be/IZAMerXr5zM "YouTube").
+
+[![Demonstration](http://img.youtube.com/vi/IZAMerXr5zM/0.jpg)](https://youtu.be/IZAMerXr5zM "YouTube")
  
 ## What is happening:
 Basically it detects the movement in front of the camera and calculates a 
